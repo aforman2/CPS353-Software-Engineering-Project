@@ -19,7 +19,7 @@ public class user{
     }
 
     public static user userBuilder(String uName) throws FileNotFoundException{
-        String filePName = "C:\\seProj\\" +uName +"\\userProperties.txt";
+        String filePName = uName +"\\userProperties.txt";
         File pfile = new File(filePName);
         Scanner sc = new Scanner(pfile);
         String TfirstName = sc.nextLine();
