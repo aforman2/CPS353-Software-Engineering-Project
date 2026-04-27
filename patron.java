@@ -1,5 +1,11 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Scanner;
 
 
@@ -44,38 +50,31 @@ public class patron extends user{
         return new patron(info[0],info[1],userName,info[2],TbooksChecked);
     }
 
-    public static void createPatron(String fName, String lName, String uName, String uPassword){
+    public static void createPatron(String fName, String lName, String uName, String uPassword) throws IOException{
+        Files.createDirectories(Path.of(uName));
+        Files.createFile(Path.of(uName +"\\userProperties.txt"));
+        Files.createFile(Path.of(uName +"\\userBooks.txt"));
+        FileWriter pWrite = new FileWriter(uName +"\\userProperties.txt");
+        pWrite.write("name: "+uName +"\n");
+        pWrite.write("lastName: "+lName+"\n");
+        pWrite.write("password: "+ uPassword);
+        pWrite.close();
+    }
+
+    public void checkoutBook(String bookName){
 
     }
 
-    public static void savePatron(){
+    public void returnBook(String bookName){
 
     }
 
-    public void listAllBooks(){
-        
-    }
-
-    public void checkoutBook(){
-
-    }
-
-    public void returnBook(){
+    public void viewMyBooks(){
 
     }
 
     public void printPatronInfo(){
-        System.out.println(this.getFirstName());
-        System.out.println(this.getLastName());
-        System.out.println(this.getUName());
-        System.out.println(this.getUPass());
-    }
-
-    public void listCheckedOutBooks(){
-        System.out.println("\nBooks Checked Out:");
-        for(int i = 0; i < booksChecked.length; i++){
-            System.out.println(booksChecked[i]);
-        }
+        
     }
 
 
