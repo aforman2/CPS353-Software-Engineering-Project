@@ -1,42 +1,30 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Scanner;
-
-
-public class user{
+public abstract class user{
 
     private String firstName;
     private String lastName;
-    private String userType;
-    private File userProperites;
+    private String uName;
+    private String userPassword;
 
-    public user(String fName, String lName, String uType, File uProp){
+    public user(String fName, String lName, String uName, String uPassword){
         this.firstName = fName;
         this.lastName = lName;
-        this.userType = uType;
-        this.userProperites = uProp;
+        this.uName = uName;
+        this.userPassword = uPassword;
     }
 
-    public static user userBuilder(String uName) throws FileNotFoundException{
-        String filePName = uName +"\\userProperties.txt";
-        File pfile = new File(filePName);
-        Scanner sc = new Scanner(pfile);
-        String TfirstName = sc.nextLine();
-        String TlastName = sc.nextLine();
-        String TuserType = sc.nextLine();
-        sc.close();
-        return new user(TfirstName, TlastName, TuserType, pfile);
-    } 
-
-    public void createUser(){
-
+    public String getFirstName(){
+        return this.firstName;
     }
 
-    public void printInfo(){
-        System.out.println(this.firstName);
-        System.out.println(this.lastName);
-        System.out.println(this.userType);
+    public String getLastName(){
+        return this.lastName;
     }
 
+    public String getUName(){
+        return this.uName;
+    }
+    public String getUPass(){
+        return this.userPassword;
+    }
+    
 }
