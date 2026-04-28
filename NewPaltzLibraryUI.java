@@ -1,6 +1,10 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -63,36 +67,70 @@ public class NewPaltzLibraryUI {
         frame.setLocationRelativeTo(null); // Center on screen
         frame.setVisible(true);
         // ... inside your main method, after creating the buttons ...
+        
+        // login button
+ // LOGIN BUTTON LOGIC
+loginButton.addActionListener(e -> {
+    String username = userField.getText();
+    String password = new String(passField.getPassword());
 
-        loginButton.addActionListener(e -> {
-            String username = userField.getText();
-            String password = new String(passField.getPassword());
+    if (username.isEmpty() || password.isEmpty()) {
+        JOptionPane.showMessageDialog(frame, "Please enter all credentials.");
+        return;
+    }
 
-            if (username.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please enter both credentials.");
-                return;
+    try (Connection conn = DatabaseConfig.getConnection()) {
+        String sql = "SELECT first_name FROM patrons WHERE username = ? AND password = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, username);
+        pstmt.setString(2, password);
+
+        java.sql.ResultSet rs = pstmt.executeQuery();
+
+        if (rs.next()) {
+            JOptionPane.showMessageDialog(frame, "Welcome back, " + rs.getString("first_name"));
+            // frame.dispose(); // Optional: Close login window
+        } else {
+            JOptionPane.showMessageDialog(frame, "Invalid credentials.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(frame, "Database error: " + ex.getMessage());
+    }
+});
+
+// CREATE ACCOUNT BUTTON LOGIC
+createAccountButton.addActionListener(e -> {
+    String uName = userField.getText();
+    String uPass = new String(passField.getPassword());
+
+    if (uName.isEmpty() || uPass.isEmpty()) {
+        JOptionPane.showMessageDialog(frame, "Enter username and password first.");
+        return;
+    }
+
+    String fName = JOptionPane.showInputDialog(frame, "Enter First Name:");
+    String lName = JOptionPane.showInputDialog(frame, "Enter Last Name:");
+
+    if (fName != null && lName != null) {
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            String sql = "INSERT INTO patrons (username, password, first_name, last_name) VALUES (?, ?, ?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, uName);
+            pstmt.setString(2, uPass);
+            pstmt.setString(3, fName);
+            pstmt.setString(4, lName);
+
+            pstmt.executeUpdate();
+            JOptionPane.showMessageDialog(frame, "Account created successfully!");
+        } catch (SQLException ex) {
+            if (ex.getErrorCode() == 1062) {
+                JOptionPane.showMessageDialog(frame, "Username already taken.");
+            } else {
+                ex.printStackTrace();
             }
-
-            try {
-                // Attempt to load the patron from their folder
-                patron existingUser = patron.userBuilder(username);
-
-                // Check if password matches
-                if (existingUser.getUPass().equals(password)) {
-                    JOptionPane.showMessageDialog(frame, "Login Successful! Welcome, " + existingUser.getFirstName());
-                    
-                    // For testing: print their info to console
-                    existingUser.printPatronInfo();
-                    existingUser.listCheckedOutBooks();
-                    
-                    // You could now hide this frame and open the main library dashboard
-                    // frame.dispose(); 
-                } else {
-                    JOptionPane.showMessageDialog(frame, "Invalid password.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (FileNotFoundException ex) {
-                JOptionPane.showMessageDialog(frame, "User not found.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        }
+    }
 });
     }
 }

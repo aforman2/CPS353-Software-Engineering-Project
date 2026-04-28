@@ -1,11 +1,11 @@
-public abstract class user{
+public abstract class User{
 
     private String firstName;
     private String lastName;
     private String uName;
     private String userPassword;
 
-    public user(String fName, String lName, String uName, String uPassword){
+    public User(String fName, String lName, String uName, String uPassword){
         this.firstName = fName;
         this.lastName = lName;
         this.uName = uName;
