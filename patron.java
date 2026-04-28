@@ -72,7 +72,7 @@ public class patron extends user{
      public void viewMyBooks() throws IOException{
         JFrame frame = new JFrame("My Books");
         JTextArea textArea = new JTextArea(4, 15);
-        textArea.setEditable(false); // Keeps it read-only
+        textArea.setEditable(false); 
         textArea.setFont(new Font("SansSerif", Font.PLAIN, 24));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
         
