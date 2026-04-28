@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import javax.swing.*;
 import java.awt.*;
 
@@ -59,5 +62,37 @@ public class NewPaltzLibraryUI {
         // Set visibility
         frame.setLocationRelativeTo(null); // Center on screen
         frame.setVisible(true);
+        // ... inside your main method, after creating the buttons ...
+
+        loginButton.addActionListener(e -> {
+            String username = userField.getText();
+            String password = new String(passField.getPassword());
+
+            if (username.isEmpty() || password.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Please enter both credentials.");
+                return;
+            }
+
+            try {
+                // Attempt to load the patron from their folder
+                patron existingUser = patron.userBuilder(username);
+
+                // Check if password matches
+                if (existingUser.getUPass().equals(password)) {
+                    JOptionPane.showMessageDialog(frame, "Login Successful! Welcome, " + existingUser.getFirstName());
+                    
+                    // For testing: print their info to console
+                    existingUser.printPatronInfo();
+                    existingUser.listCheckedOutBooks();
+                    
+                    // You could now hide this frame and open the main library dashboard
+                    // frame.dispose(); 
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Invalid password.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (FileNotFoundException ex) {
+                JOptionPane.showMessageDialog(frame, "User not found.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+});
     }
 }
