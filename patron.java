@@ -86,9 +86,5 @@ public class patron extends user{
         frame.setVisible(true);
     }
 
-    public void printPatronInfo(){
-        
-    }
-
 
 }
