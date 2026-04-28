@@ -69,8 +69,21 @@ public class patron extends user{
 
     }
 
-    public void viewMyBooks(){
+     public void viewMyBooks() throws IOException{
+        JFrame frame = new JFrame("My Books");
+        JTextArea textArea = new JTextArea(4, 15);
+        textArea.setEditable(false); // Keeps it read-only
+        textArea.setFont(new Font("SansSerif", Font.PLAIN, 24));
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
+        
+        String content = Files.readAllLines(Paths.get(this.getUName()+"\\userBooks.txt")).stream().collect(Collectors.joining("\n"));
+        textArea.setText(content);
+        
 
+        frame.add(new JScrollPane(textArea));
+        frame.setLocationRelativeTo(null); 
+        frame.pack();
+        frame.setVisible(true);
     }
 
     public void printPatronInfo(){
