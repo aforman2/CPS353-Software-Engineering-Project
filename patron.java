@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 
-public class patron extends user{
+public class patron extends User{
 
     private String[] booksChecked = new String[3];
 
