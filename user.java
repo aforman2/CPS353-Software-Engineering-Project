@@ -1,30 +1,31 @@
-public abstract class User{
+public abstract class user {
 
     private String firstName;
     private String lastName;
     private String uName;
     private String userPassword;
 
-    public User(String fName, String lName, String uName, String uPassword){
+    public user(String fName, String lName, String uName, String uPassword) {
         this.firstName = fName;
         this.lastName = lName;
         this.uName = uName;
         this.userPassword = uPassword;
     }
 
-    public String getFirstName(){
+    public String getFirstName() {
         return this.firstName;
     }
 
-    public String getLastName(){
+    public String getLastName() {
         return this.lastName;
     }
 
-    public String getUName(){
+    public String getUName() {
         return this.uName;
     }
-    public String getUPass(){
+
+    public String getUPass() {
         return this.userPassword;
     }
-    
+
 }
