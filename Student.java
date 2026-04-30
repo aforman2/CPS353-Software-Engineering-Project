@@ -1,4 +1,4 @@
-public class Student extends user {
+public class Student extends Users {
     private int booksBorrowed;
     private final int MAX_BOOKS = 5;
 
