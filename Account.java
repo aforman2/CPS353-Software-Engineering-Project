@@ -1,5 +1,3 @@
-package Users;
-
 public interface Account {
 
     // Takes in a username and password to be checked with an account in the system
