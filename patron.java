@@ -68,4 +68,18 @@ public class patron extends User {
             e.printStackTrace();
         }
     }
+    public boolean canBorrow(int newCount) {
+    // Ask the DB how many books this SPECIFIC object currently has
+    int currentLoans = 0;
+    String sql = "SELECT COUNT(*) FROM loans WHERE patron_id = ? AND return_date IS NULL";
+    
+    try (Connection conn = DatabaseConfig.getConnection()) {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, this.id);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) currentLoans = rs.getInt(1);
+    } catch (SQLException e) { e.printStackTrace(); }
+
+    return (currentLoans + newCount) <= 3;
+}
 }

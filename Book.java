@@ -14,6 +14,15 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
+    // --- The getStatus Method ---
+    public String getStatus() {
+        if (this.availableCopies > 0) {
+            return "Available (" + this.availableCopies + ")";
+        } else {
+            return "Out of Stock";
+        }
+    }
+
     // Getters
     public int getId() { return id; }
     public String getTitle() { return title; }
