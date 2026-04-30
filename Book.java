@@ -1,24 +1,40 @@
 public class Book {
+    private int id;             // NEW: Needed to match the Primary Key in MySQL
     private String title;
     private String author;
     private String isbn;
-    private boolean isAvailable;
+    private int availableCopies; // Changed from boolean to int to support multiple copies
 
-    // Constructor to initialize the book
-    public Book(String title, String author, String isbn) {
+    // Constructor to initialize the book from Database data
+    public Book(int id, String title, String author, String isbn, int availableCopies) {
+        this.id = id;
         this.title = title;
         this.author = author;
         this.isbn = isbn;
-        this.isAvailable = true; // Default to available
+        this.availableCopies = availableCopies;
+    }
+
+    // --- The getStatus Method ---
+    public String getStatus() {
+        if (this.availableCopies > 0) {
+            return "Available (" + this.availableCopies + ")";
+        } else {
+            return "Out of Stock";
+        }
     }
 
     // Getters
+    public int getId() { return id; }
     public String getTitle() { return title; }
+    public String getAuthor() { return author; }
     public String getIsbn() { return isbn; }
-    public boolean isAvailable() { return isAvailable; }
+    
+    // Updated Logic: Instead of just true/false, we check if count > 0
+    public boolean isAvailable() { 
+        return availableCopies > 0; 
+    }
 
-    // Setter for status
-    public void setAvailable(boolean available) {
-        isAvailable = available;
+    public int getAvailableCopies() {
+        return availableCopies;
     }
 }

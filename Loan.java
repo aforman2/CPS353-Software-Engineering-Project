@@ -1,51 +1,26 @@
 import java.util.Date;
 
 public class Loan {
-
-    // INITIAL VARS
-    private String loanID;
-    private Date checkoutDate;
+    private int bookId;
+    private String bookTitle;
     private Date dueDate;
+    private Date returnDate;
 
-    // CONSTRUCTOR
-    public Loan(String id, Date cD, Date dD) {
-        this.loanID = id;
-        this.checkoutDate = cD;
-        this.dueDate = dD;
+    public Loan(int bookId, String bookTitle, Date dueDate, Date returnDate) {
+        this.bookId = bookId;
+        this.bookTitle = bookTitle;
+        this.dueDate = dueDate;
+        this.returnDate = returnDate;
     }
 
-    // GETS AND SETS
-    public String getLoanID() {
-        return loanID;
-    }
-
-    public void setLoanID(String l) {
-        loanID = l;
-    }
-
-    public Date getCheckouDate() {
-        return checkoutDate;
-    }
-
-    public void setCheckoutDate(Date cd) {
-        checkoutDate = cd;
-    }
-
-    public Date getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(Date dD) {
-        dueDate = dD;
-    }
-
-    // MAIN METHODS
-
+    // Getters
+    public int getBookId() { return bookId; }
+    public String getBookTitle() { return bookTitle; }
+    public Date getDueDate() { return dueDate; }
+    
+    // Business Logic: Is the book late?
     public boolean isOverdue() {
-        if (checkoutDate.getTime() >= dueDate.getTime()) {
-            return true;
-        }
-        return false;
+        if (returnDate != null) return false;
+        return new Date().after(dueDate);
     }
-
 }
