@@ -1,82 +1,71 @@
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
+public class patron extends User {
+    private int id; // Matches the 'id' column in MySQL
+    private String role; // 'Student' or 'Librarian'
 
-public class patron extends User{
-
-    private String[] booksChecked = new String[3];
-
-    public patron(String fName, String lName, String uName, String uPass, String[] uBooksChecked) {
+    // Updated Constructor
+    public patron(int id, String fName, String lName, String uName, String uPass, String role) {
         super(fName, lName, uName, uPass);
-        this.booksChecked = uBooksChecked;
-
+        this.id = id;
+        this.role = role;
     }
-    public static patron userBuilder(String userName) throws FileNotFoundException{
-        File pfile = new File(userName +"\\userProperties.txt");
-        Scanner sc = new Scanner(pfile);
-        File pbooks = new File(userName +"\\userBooks.txt");
-        Scanner scBooks = new Scanner(pbooks);
-        String[] info = new String[3];
-        String[] TbooksChecked = new String[3];
 
-        while (sc.hasNext()) {
-        String label = sc.next(); 
-    
-        if (sc.hasNext()) {
-            String value = sc.next();
+    // This replaces userBuilder - it loads a Patron object from the DB
+    public static patron loadFromDatabase(String username) {
+        String sql = "SELECT * FROM patrons WHERE username = ?";
         
-            if (label.equals("name:")) info[0] = value;
-            else if (label.equals("lastName:")) info[1] = value;
-            else if (label.equals("password:")) info[2] = value;
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return new patron(
+                    rs.getInt("id"),
+                    rs.getString("first_name"),
+                    rs.getString("last_name"),
+                    rs.getString("username"),
+                    rs.getString("password"),
+                    rs.getString("role")
+                );
             }
-        }  
-        
-        for (int i = 0; i <3; i++){
-            if (scBooks.hasNext()){
-                TbooksChecked[i] = scBooks.nextLine();
-            }else{
-                TbooksChecked[i] = "-";
-            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        sc.close();
-        scBooks.close();
-        return new patron(info[0],info[1],userName,info[2],TbooksChecked);
+        return null;
     }
 
-    public static void createPatron(String fName, String lName, String uName, String uPassword){
+    // GETTERS
+    public int getId() { return id; }
+    public String getRole() { return role; }
 
-    }
-
-    public static void savePatron(){
-
-    }
-
-    public void listAllBooks(){
+    // This will now query the 'loans' table instead of reading a .txt file
+    public void listCheckedOutBooks() {
+        System.out.println("\nBooks currently checked out by " + getFirstName() + ":");
         
-    }
+        String sql = "SELECT b.title FROM books b " +
+                     "JOIN loans l ON b.id = l.book_id " +
+                     "WHERE l.patron_id = ? AND l.return_date IS NULL";
 
-    public void checkoutBook(){
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, this.id);
+            ResultSet rs = pstmt.executeQuery();
 
-    }
-
-    public void returnBook(){
-
-    }
-
-    public void printPatronInfo(){
-        System.out.println(this.getFirstName());
-        System.out.println(this.getLastName());
-        System.out.println(this.getUName());
-        System.out.println(this.getUPass());
-    }
-
-    public void listCheckedOutBooks(){
-        System.out.println("\nBooks Checked Out:");
-        for(int i = 0; i < booksChecked.length; i++){
-            System.out.println(booksChecked[i]);
+            boolean hasBooks = false;
+            while (rs.next()) {
+                System.out.println("- " + rs.getString("title"));
+                hasBooks = true;
+            }
+            if (!hasBooks) System.out.println("No active loans.");
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
-
-
 }
