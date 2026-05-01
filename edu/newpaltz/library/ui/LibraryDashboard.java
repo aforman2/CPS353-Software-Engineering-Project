@@ -63,7 +63,7 @@ public class LibraryDashboard extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    // --- VIEW 1: THE BROWSE PANEL ---
+    // VIEW 1: THE BROWSE PANEL
     private JPanel createBrowsePanel() {
         JPanel panel = new JPanel(new BorderLayout());
 

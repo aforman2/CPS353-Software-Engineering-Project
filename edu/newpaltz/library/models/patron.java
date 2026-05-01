@@ -16,7 +16,7 @@ public class patron extends User {
         this.role = role;
     }
 
-    // This replaces userBuilder - it loads a Patron object from the DB
+    // loads a Patron object from the DB
     public static patron loadFromDatabase(String username) {
         String sql = "SELECT * FROM patrons WHERE username = ?";
         
