@@ -1,23 +1,28 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.sql.*;
+package edu.newpaltz.library.ui;
+import javax.swing.*; // GUI components (JFrame, JButton, etc.)
+import javax.swing.table.DefaultTableModel; // Handles the data grid for tables
+import java.awt.*; // Layouts and Colors
+import java.sql.*; // Database connectivity
+import edu.newpaltz.library.models.Book; // Book model for representing book data
+import edu.newpaltz.library.models.patron; // Patron model for representing user data
+import edu.newpaltz.library.config.DatabaseConfig; // Database connection configuration
 
+// dashboard is a window (inherits all properties of standard operating system)
 public class LibraryDashboard extends JFrame {
-    private patron currentUser;
+    private patron currentUser; //store logged-in user information
     
     // Browse Tab Components
-    private DefaultTableModel browseModel;
-    private JTable browseTable;
+    private DefaultTableModel browseModel; //backend data grid for searching books
+    private JTable browseTable; //frontend visuual table for searching books
     private JTextField searchField;
 
     // My Account Tab Components
-    private DefaultTableModel myLoansModel;
-    private JTable myLoansTable;
+    private DefaultTableModel myLoansModel; //data grid for user's personal checkouts
+    private JTable myLoansTable; //visual table for the user's personal checkouts
 
     // Global Column Names
-    private final String[] browseCols = {"ID", "Title", "Author", "ISBN", "Status"};
-    private final String[] loanCols = {"Book ID", "Title", "Due Date"};
+    private final String[] browseCols = {"ID", "Title", "Author", "ISBN", "Status"}; //header for browse/search page
+    private final String[] loanCols = {"Book ID", "Title", "Due Date"}; //header for my loans page
 
     public LibraryDashboard(patron user) {
         this.currentUser = user;
@@ -37,7 +42,7 @@ public class LibraryDashboard extends JFrame {
 
         JButton logoutBtn = new JButton("Logout");
         header.add(logoutBtn, BorderLayout.EAST);
-        
+        //goes back to login page after logging out
         logoutBtn.addActionListener(e -> {
             new LoginUI(); 
             this.dispose(); 
@@ -51,7 +56,7 @@ public class LibraryDashboard extends JFrame {
         tabs.addTab("My Account", createMyAccountPanel());
         add(tabs, BorderLayout.CENTER);
 
-        // 3. Initial Data Load
+        // 3. Initial Data Load = fills the tables with data from the database when the dashboard is first opened
         performSearch();
         loadMyLoans();
 
@@ -118,7 +123,7 @@ public class LibraryDashboard extends JFrame {
     // --- LOGIC: SEARCH ---
     private void performSearch() {
         String query = searchField.getText();
-        browseModel.setRowCount(0);
+        browseModel.setRowCount(0); // Clear befor every new search
         
         // FIXED: Using 'book' (singular) to match your DB
         String sql = "SELECT * FROM book WHERE title LIKE ? OR author LIKE ?";
@@ -130,7 +135,7 @@ public class LibraryDashboard extends JFrame {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Book book = new Book(
+                Book book = new Book( //convert database row into java object (Object-Relational Mapping best swe principle)
                     rs.getInt("id"),
                     rs.getString("title"),
                     rs.getString("author"),
@@ -198,7 +203,7 @@ public class LibraryDashboard extends JFrame {
                 return;
             }
 
-            conn.setAutoCommit(false); 
+            conn.setAutoCommit(false); //starts a transaction
             
             for (int row : selectedRows) {
                 int bookId = (int) browseModel.getValueAt(row, 0);

@@ -1,3 +1,4 @@
+package edu.newpaltz.library.models;
 public class Book {
     private int id;             // NEW: Needed to match the Primary Key in MySQL
     private String title;
