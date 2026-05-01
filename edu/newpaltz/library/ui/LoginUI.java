@@ -1,6 +1,9 @@
+package edu.newpaltz.library.ui;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import edu.newpaltz.library.models.patron;
+import edu.newpaltz.library.config.DatabaseConfig;
 
 public class LoginUI {
 
@@ -11,7 +14,7 @@ public class LoginUI {
 
     public static void main(String[] args) {
         // Standard launch using the constructor
-        SwingUtilities.invokeLater(() -> new LoginUI());
+        SwingUtilities.invokeLater(() -> new LoginUI()); //This is a critical engineering practice. It ensures the GUI is created on the Event Dispatch Thread (EDT). Since Swing is not "thread-safe," failing to do this can cause random UI glitches or crashes.
     }
 
     private void createAndShowGUI() {

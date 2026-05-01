@@ -1,3 +1,5 @@
+package edu.newpaltz.library.models;
+
 import java.util.Date;
 
 public class Loan {
