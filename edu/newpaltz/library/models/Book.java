@@ -1,5 +1,6 @@
+package edu.newpaltz.library.models;
 public class Book {
-    private int id;             // NEW: Needed to match the Primary Key in MySQL
+    private int id;             //Needed to match the Primary Key in MySQL
     private String title;
     private String author;
     private String isbn;
@@ -12,6 +13,15 @@ public class Book {
         this.author = author;
         this.isbn = isbn;
         this.availableCopies = availableCopies;
+    }
+
+    // getStatus Method - shows whether book is available
+    public String getStatus() {
+        if (this.availableCopies > 0) {
+            return "Available (" + this.availableCopies + ")";
+        } else {
+            return "Out of Stock";
+        }
     }
 
     // Getters

@@ -1,35 +1,22 @@
+package edu.newpaltz.library.models;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import edu.newpaltz.library.config.DatabaseConfig;
 
 public class patron extends User {
     private int id; // Matches the 'id' column in MySQL
     private String role; // 'Student' or 'Librarian'
 
-<<<<<<< HEAD
-public class patron extends user{
-
-    private String[] booksChecked = new String[3];
-
-    public patron(String fName, String lName, String uName, String uPass, String[] uBooksChecked) {
-=======
     // Updated Constructor
     public patron(int id, String fName, String lName, String uName, String uPass, String role) {
->>>>>>> joshua
         super(fName, lName, uName, uPass);
         this.id = id;
         this.role = role;
     }
-<<<<<<< HEAD
-    public static patron userBuilder(String userName) throws FileNotFoundException{
-        
-        return new patron(null,null,null,null,null);
-    }
-=======
 
-    // This replaces userBuilder - it loads a Patron object from the DB
+    // loads a Patron object from the DB
     public static patron loadFromDatabase(String username) {
         String sql = "SELECT * FROM patrons WHERE username = ?";
         
@@ -65,23 +52,12 @@ public class patron extends user{
         String sql = "SELECT b.title FROM books b " +
                      "JOIN loans l ON b.id = l.book_id " +
                      "WHERE l.patron_id = ? AND l.return_date IS NULL";
->>>>>>> joshua
 
         try (Connection conn = DatabaseConfig.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, this.id);
             ResultSet rs = pstmt.executeQuery();
 
-<<<<<<< HEAD
-    }
-
-    public void returnBook(){
-
-    }
-
-
-}
-=======
             boolean hasBooks = false;
             while (rs.next()) {
                 System.out.println("- " + rs.getString("title"));
@@ -93,5 +69,18 @@ public class patron extends user{
             e.printStackTrace();
         }
     }
+    public boolean canBorrow(int newCount) {
+    // Ask the DB how many books this SPECIFIC object currently has
+    int currentLoans = 0;
+    String sql = "SELECT COUNT(*) FROM loans WHERE patron_id = ? AND return_date IS NULL";
+    
+    try (Connection conn = DatabaseConfig.getConnection()) {
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setInt(1, this.id);
+        ResultSet rs = pstmt.executeQuery();
+        if (rs.next()) currentLoans = rs.getInt(1);
+    } catch (SQLException e) { e.printStackTrace(); }
+
+    return (currentLoans + newCount) <= 3;
 }
->>>>>>> joshua
+}

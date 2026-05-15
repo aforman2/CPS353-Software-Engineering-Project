@@ -1,19 +1,28 @@
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.awt.*;
-import java.sql.*;
+package edu.newpaltz.library.ui;
+import javax.swing.*; // GUI components (JFrame, JButton, etc.)
+import javax.swing.table.DefaultTableModel; // Handles the data grid for tables
+import java.awt.*; // Layouts and Colors
+import java.sql.*; // Database connectivity
+import edu.newpaltz.library.models.Book; // Book model for representing book data
+import edu.newpaltz.library.models.patron; // Patron model for representing user data
+import edu.newpaltz.library.config.DatabaseConfig; // Database connection configuration
 
+// dashboard is a window (inherits all properties of standard operating system)
 public class LibraryDashboard extends JFrame {
-    private patron currentUser;
+    private patron currentUser; //store logged-in user information
     
     // Browse Tab Components
-    private DefaultTableModel browseModel;
-    private JTable browseTable;
+    private DefaultTableModel browseModel; //backend data grid for searching books
+    private JTable browseTable; //frontend visuual table for searching books
     private JTextField searchField;
 
     // My Account Tab Components
-    private DefaultTableModel myLoansModel;
-    private JTable myLoansTable;
+    private DefaultTableModel myLoansModel; //data grid for user's personal checkouts
+    private JTable myLoansTable; //visual table for the user's personal checkouts
+
+    // Global Column Names
+    private final String[] browseCols = {"ID", "Title", "Author", "ISBN", "Status"}; //header for browse/search page
+    private final String[] loanCols = {"Book ID", "Title", "Due Date"}; //header for my loans page
 
     public LibraryDashboard(patron user) {
         this.currentUser = user;
@@ -25,26 +34,36 @@ public class LibraryDashboard extends JFrame {
         // 1. TOP HEADER
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(0, 61, 121)); // New Paltz Blue
+        
         JLabel welcome = new JLabel("  Welcome, " + currentUser.getFirstName() + " (" + currentUser.getRole() + ")");
         welcome.setForeground(Color.WHITE);
         welcome.setFont(new Font("SansSerif", Font.BOLD, 16));
         header.add(welcome, BorderLayout.WEST);
+
+        JButton logoutBtn = new JButton("Logout");
+        header.add(logoutBtn, BorderLayout.EAST);
+        //goes back to login page after logging out
+        logoutBtn.addActionListener(e -> {
+            new LoginUI(); 
+            this.dispose(); 
+        });
+
         add(header, BorderLayout.NORTH);
 
-        // 2. TABS INITIALIZATION
+        // 2. TABS INITIALIZATION (UI must be built before loading data)
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Browse Library", createBrowsePanel());
         tabs.addTab("My Account", createMyAccountPanel());
         add(tabs, BorderLayout.CENTER);
 
-        // Initial Data Load
+        // 3. Initial Data Load = fills the tables with data from the database when the dashboard is first opened
         performSearch();
         loadMyLoans();
 
         setLocationRelativeTo(null);
     }
 
-    // --- VIEW 1: THE BROWSE PANEL ---
+    // VIEW 1: THE BROWSE PANEL
     private JPanel createBrowsePanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -57,10 +76,10 @@ public class LibraryDashboard extends JFrame {
         searchBarPanel.add(searchBtn);
         panel.add(searchBarPanel, BorderLayout.NORTH);
 
-        // Table in Middle
-        String[] cols = {"ID", "Title", "Author", "ISBN", "Status"};
-        browseModel = new DefaultTableModel(cols, 0);
+        // Table in Middle - FIXED: Removed local variable declaration
+        browseModel = new DefaultTableModel(browseCols, 0);
         browseTable = new JTable(browseModel);
+        browseTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         panel.add(new JScrollPane(browseTable), BorderLayout.CENTER);
 
         // Checkout Button at Bottom
@@ -85,13 +104,11 @@ public class LibraryDashboard extends JFrame {
         label.setFont(new Font("SansSerif", Font.ITALIC, 14));
         panel.add(label, BorderLayout.NORTH);
 
-        // Loans Table
-        String[] cols = {"Book ID", "Title", "Due Date"};
-        myLoansModel = new DefaultTableModel(cols, 0);
+        // Table in Middle - FIXED: Removed local variable declaration
+        myLoansModel = new DefaultTableModel(loanCols, 0);
         myLoansTable = new JTable(myLoansModel);
         panel.add(new JScrollPane(myLoansTable), BorderLayout.CENTER);
 
-        // Return Button
         JButton returnBtn = new JButton("Return Selected Book");
         returnBtn.setPreferredSize(new Dimension(200, 40));
         JPanel bottom = new JPanel();
@@ -106,9 +123,10 @@ public class LibraryDashboard extends JFrame {
     // --- LOGIC: SEARCH ---
     private void performSearch() {
         String query = searchField.getText();
-        browseModel.setRowCount(0);
-        // Using "books" - ensure your table name matches (books or book)
-        String sql = "SELECT * FROM books WHERE title LIKE ? OR author LIKE ?";
+        browseModel.setRowCount(0); // Clear befor every new search
+        
+        // FIXED: Using 'book' (singular) to match your DB
+        String sql = "SELECT * FROM book WHERE title LIKE ? OR author LIKE ?";
 
         try (Connection conn = DatabaseConfig.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -117,10 +135,20 @@ public class LibraryDashboard extends JFrame {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
+                Book book = new Book( //convert database row into java object (Object-Relational Mapping best swe principle)
+                    rs.getInt("id"),
+                    rs.getString("title"),
+                    rs.getString("author"),
+                    rs.getString("isbn"),
+                    rs.getInt("available_copies")
+                );
+
                 Object[] row = {
-                    rs.getInt("id"), rs.getString("title"),
-                    rs.getString("author"), rs.getString("isbn"),
-                    (rs.getInt("available_copies") > 0 ? "Available" : "Out")
+                    book.getId(),
+                    book.getTitle(),
+                    book.getAuthor(),
+                    book.getIsbn(),
+                    book.getStatus() 
                 };
                 browseModel.addRow(row);
             }
@@ -130,8 +158,11 @@ public class LibraryDashboard extends JFrame {
     // --- LOGIC: LOAD PERSONAL LOANS ---
     private void loadMyLoans() {
         myLoansModel.setRowCount(0);
-        String sql = "SELECT b.id, b.title, l.due_date FROM loans l " +
-                     "JOIN books b ON l.book_id = b.id " +
+
+        // FIXED: Using 'book' (singular)
+        String sql = "SELECT b.id AS bId, b.title, l.due_date " +
+                     "FROM loans l " +
+                     "JOIN book b ON l.book_id = b.id " +
                      "WHERE l.patron_id = ? AND l.return_date IS NULL";
 
         try (Connection conn = DatabaseConfig.getConnection()) {
@@ -140,59 +171,75 @@ public class LibraryDashboard extends JFrame {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                Object[] row = { rs.getInt("id"), rs.getString("title"), rs.getString("due_date") };
+                Object[] row = {
+                    rs.getInt("bId"),     
+                    rs.getString("title"), 
+                    rs.getDate("due_date") 
+                };
                 myLoansModel.addRow(row);
             }
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // --- LOGIC: CHECKOUT WITH CONFIRMATION ---
+    // --- LOGIC: CHECKOUT ---
     private void handleCheckout() {
-        int row = browseTable.getSelectedRow();
-        if (row == -1) {
-            JOptionPane.showMessageDialog(this, "Please select a book to checkout.");
+        int[] selectedRows = browseTable.getSelectedRows();
+        if (selectedRows.length == 0) {
+            JOptionPane.showMessageDialog(this, "Please select at least one book.");
             return;
         }
 
-        int bookId = (int) browseModel.getValueAt(row, 0);
-        String title = (String) browseModel.getValueAt(row, 1);
+        try (Connection conn = DatabaseConfig.getConnection()) {
+            String countSql = "SELECT COUNT(*) FROM loans WHERE patron_id = ? AND return_date IS NULL";
+            PreparedStatement countPstmt = conn.prepareStatement(countSql);
+            countPstmt.setInt(1, currentUser.getId());
+            ResultSet rs = countPstmt.executeQuery();
+            
+            int currentLoans = 0;
+            if (rs.next()) currentLoans = rs.getInt(1);
 
-        int confirm = JOptionPane.showConfirmDialog(this, 
-            "Confirm checkout for: " + title + "?", "Checkout Confirmation", JOptionPane.YES_NO_OPTION);
+            if (currentLoans + selectedRows.length > 3) {
+                JOptionPane.showMessageDialog(this, "Limit reached! You can only have 3 books out. Currently: " + currentLoans);
+                return;
+            }
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            try (Connection conn = DatabaseConfig.getConnection()) {
-                conn.setAutoCommit(false);
+            conn.setAutoCommit(false); //starts a transaction
+            
+            for (int row : selectedRows) {
+                int bookId = (int) browseModel.getValueAt(row, 0);
                 
-                // 1. Add to loans
                 String loanSql = "INSERT INTO loans (patron_id, book_id, loan_date, due_date) VALUES (?, ?, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 14 DAY))";
                 PreparedStatement lp = conn.prepareStatement(loanSql);
                 lp.setInt(1, currentUser.getId());
                 lp.setInt(2, bookId);
                 lp.executeUpdate();
 
-                // 2. Decrement inventory
-                String invSql = "UPDATE books SET available_copies = available_copies - 1 WHERE id = ? AND available_copies > 0";
+                // FIXED: Using 'book' (singular)
+                String invSql = "UPDATE book SET available_copies = available_copies - 1 WHERE id = ? AND available_copies > 0";
                 PreparedStatement ip = conn.prepareStatement(invSql);
                 ip.setInt(1, bookId);
                 
-                if (ip.executeUpdate() > 0) {
-                    conn.commit();
-                    JOptionPane.showMessageDialog(this, "Success! Check 'My Account' for due dates.");
-                    performSearch();
-                    loadMyLoans(); // Update the other tab!
-                } else {
+                if (ip.executeUpdate() == 0) {
                     conn.rollback();
-                    JOptionPane.showMessageDialog(this, "Book is currently unavailable.");
+                    JOptionPane.showMessageDialog(this, "Book ID " + bookId + " is unavailable.");
+                    return;
                 }
-            } catch (SQLException e) { e.printStackTrace(); }
-        }
+            }
+
+            conn.commit(); 
+            JOptionPane.showMessageDialog(this, "Checkout successful!");
+            performSearch();
+            loadMyLoans();
+        } catch (SQLException e) { e.printStackTrace(); }
     }
 
     // --- LOGIC: RETURN ---
     private void handleReturn() {
         int row = myLoansTable.getSelectedRow();
-        if (row == -1) return;
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a book to return.");
+            return;
+        }
 
         int bookId = (int) myLoansModel.getValueAt(row, 0);
 
@@ -203,12 +250,12 @@ public class LibraryDashboard extends JFrame {
             pstmt.setInt(2, bookId);
 
             if (pstmt.executeUpdate() > 0) {
-                // Increment inventory
-                PreparedStatement inv = conn.prepareStatement("UPDATE books SET available_copies = available_copies + 1 WHERE id = ?");
+                // FIXED: Using 'book' (singular)
+                PreparedStatement inv = conn.prepareStatement("UPDATE book SET available_copies = available_copies + 1 WHERE id = ?");
                 inv.setInt(1, bookId);
                 inv.executeUpdate();
 
-                JOptionPane.showMessageDialog(this, "Book Returned Successfully!");
+                JOptionPane.showMessageDialog(this, "Book Returned!");
                 performSearch();
                 loadMyLoans();
             }
